@@ -25,33 +25,9 @@ describe("User Account", () => {
 		expect(res).toBeTruthy()
 	})
 
-    test("Doing the facilities info", async () => {
+    	test("Doing the facilities info", async () => {
 		const res = await User.BookingandReservation("facilities_manager_name", "location", "max_num_of_visitor", "facilities_manager_contact_number", "email", "password")
 		expect(res).toBeTruthy()
 	})
 
-    test("User login invalid name, email", async () => {
-		const res = await User.login("name", "email")
-		expect(res).toBeFalsy()
-        try{
-            await User.login()
-        } catch(e){
-            expext(e).toMatch("invalid name and email")
-        }
-	})
-
-	test("User login invalid password", async () => {
-		const res = await User.login("password")
-		expect(res).toBeFalsy()
-        try{
-            await User.login()
-        } catch(e){
-            expext(e).toMatch("invalid password")
-        }
-	})
-
-	test("User login successfully", async () => {
-		const res = await User.login("name", "email", "password")
-		expect(res).toBe(true)
-	})
 });
