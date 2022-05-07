@@ -1,57 +1,40 @@
 const MongoClient = require("mongodb").MongoClient;
-const User = require("./user")
+const User = require("./user");
 
 describe("User Account", () => {
-	let client;
-	beforeAll(async () => {
-		client = await MongoClient.connect(
-			"my-mongodb+srv-connection-string",
-			{ useNewUrlParser: true },
-		);
-		User.injectDB(client);
-	})
+    let client;
+    beforeAll(async () => {
+        client = await MongoClient.connect(
+            "my-mongodb+srv-connection-string",
+            { useNewUrlParser: true },
+        );
+        User.injectDB(client);
+    })
 
-	afterAll(async () => {
-		await client.close();
-	})
+    afterAll(async () => {
+        await client.close();
+    })
+    
+    afterEach(async () => {
+        await client.db("vms").collection("visitor").deleteOne({ ic_no: "981106-02-6890" });
+    });
 
-	test("Register the visitor account", async () => {
-		const res = await User.register("name", "age", "gender", "room_number", "contact_number", "mysj_status", "email", "password")
-		expect(res).toBeTruthy()
-	})
+    //Test if the new user has registered successfully
+    test("Register the user account", async () => {
+        const res = await User.Register("Alice", "981106-02-6890", "alice@gmail.com", "012-5568924", "Low Risk")
+        console.log(res[0], res[1]);
+        expect(res[0].ic_no).toBe("981106-02-6890")
+    })
 
-	test("Doing the booking and reservation", async () => {
-		const res = await User.BookingandReservation("name", "email", "password", "time_slot", "number_of_visitors")
-		expect(res).toBeTruthy()
-	})
 
-    test("Doing the facilities info", async () => {
-		const res = await User.BookingandReservation("facilities_manager_name", "location", "max_num_of_visitor", "facilities_manager_contact_number", "email", "password")
-		expect(res).toBeTruthy()
-	})
+    test("Doing the booking and reservation", async () => {
+    	const res = await User.BookingandReservation("001", "122", "0930")
+    	expect(res.length).toBe(1)
+    })
 
-    test("User login invalid name, email", async () => {
-		const res = await User.login("name", "email")
-		expect(res).toBeFalsy()
-        try{
-            await User.login()
-        } catch(e){
-            expext(e).toMatch("invalid name and email")
-        }
-	})
 
-	test("User login invalid password", async () => {
-		const res = await User.login("password")
-		expect(res).toBeFalsy()
-        try{
-            await User.login()
-        } catch(e){
-            expext(e).toMatch("invalid password")
-        }
-	})
-
-	test("User login successfully", async () => {
-		const res = await User.login("name", "email", "password")
-		expect(res).toBe(true)
-	})
+    test("Query for booking request made", async () => {
+     const res = await User.Booking_query("123")
+     expect(res).not.toBeNull()
+    })
 });
