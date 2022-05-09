@@ -22,12 +22,12 @@ class User {
         return
 	}
 
-	static async Facilities_info(facilities_manager_name, location, max_num_of_visitor, facilities_manager_contact_number, email, password) {
-		// TODO: Check if facilitiesmanagername, location, max_num_of_visitor, facilities_manager_contact_number, email exists
+// 	static async Facilities_info(facilities_manager_name, location, max_num_of_visitor, facilities_manager_contact_number, email, password) {
+// 		// TODO: Check if facilitiesmanagername, location, max_num_of_visitor, facilities_manager_contact_number, email exists
 
-		// TODO: Validate password
+// 		// TODO: Validate password
 
-		// TODO: Save Facilities_info to database
+// 		// TODO: Save Facilities_info to database
         return
 	}
 }
