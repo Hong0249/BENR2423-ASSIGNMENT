@@ -5,7 +5,7 @@ describe("User Account", () => {
 	let client;
 	beforeAll(async () => {
 		client = await MongoClient.connect(
-			"my-mongodb+srv-connection-string",
+			"my-mongodb+srv-connection-stringmy-mongodb+srv-connection-string",
 			{ useNewUrlParser: true },
 		);
 		User.injectDB(client);
@@ -15,19 +15,28 @@ describe("User Account", () => {
 		await client.close();
 	})
 
-	test("Register the visitor account", async () => {
-		const res = await User.register("name", "age", "gender", "room_number", "contact_number", "mysj_status", "email", "password")
-		expect(res).toBeTruthy()
+	test("New user registration", async () => {
+		const res = await User.register("UTeM", "p@ssw0rd")
+		expect(res[0].username).toBe("UTeM")
 	})
 
-	test("Doing the booking and reservation", async () => {
-		const res = await User.BookingandReservation("name", "email", "password", "time_slot", "number_of_visitors")
-		expect(res).toBeTruthy()
+	test("Duplicate username", async () => {
+		const res = await User.register("UTeM", "p@ssw0rd")
+		expect(res.length).toBe(1)
 	})
 
-    	test("Doing the facilities info", async () => {
-		const res = await User.BookingandReservation("facilities_manager_name", "location", "max_num_of_visitor", "facilities_manager_contact_number", "email", "password")
-		expect(res).toBeTruthy()
+	test("User login invalid username", async () => {
+		const res = await User.login("UUTEM", "p@ssw0rd")
+		expect(res.usersearch).toBe(false)
 	})
 
+	test("User login invalid password", async () => {
+		const res = await User.login("UTeM", "p@ssw0rdf")
+		expect(res.key).toBe(false)
+	})
+
+	test("User login successfully", async () => {
+		const res = await User.login("UTeM", "p@ssw0rd")
+		expect(res[1]).toBe(true)
+	})
 });
