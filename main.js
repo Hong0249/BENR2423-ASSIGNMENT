@@ -3,7 +3,7 @@ const User = require("./user");
 
 MongoClient.connect(
 	// TODO: Connection 
-	"my-mongodb+srv-connection-string",
+	"my-mongodb+srv-connection-stringmy-mongodb+srv-connection-string",
 	{ useNewUrlParser: true },
 ).catch(err => {
 	console.error(err.stack)
@@ -32,22 +32,36 @@ app.post('/login', async (req, res) => {
 	console.log(req.body);
 
 	const user = await User.login(req.body.username, req.body.password);
-
-	// res.json({
-	// 	_id: '123456',
-	// 	name: 'test',
-	// 	age: 18,
-	// })
+	if (user != null ) {
+		console.log("Login successful");
+		res.status(200).json({
+			_id: user[0]._id,	
+			username: user[0].username,
+		})
+	} else {
+		console.log("Login failed")
+		res.status(401).json({
+			error: "Invalid username or password"
+		})
+	}
 })
 
 app.post('/register', async (req, res) => {
 	console.log(req.body);
 
-	// res.json({
-	// 	_id: '123456',
-	// 	name: 'test',
-	// 	age: 18,
-	// })
+	const user = await User.register(req.body.username, req.body.password);
+	if (user != null) {
+		console.log("Register successful");
+		res.status(200).json({
+			message: "User registered"
+		})
+	} else {
+		console.log("Register failed")
+		res.status(404).json({
+			error: "Username already exists"
+		})
+	}
+
 })
 
 app.listen(port, () => {
