@@ -22,4 +22,8 @@ Team Member:
  
  Production Engineer – Teoh Yu Xian
  
- ![Use-Case Diagram](https://raw.githubusercontent.com/Hong0249/BENR2423-ASSIGNMENT/main/Use-case%20Diagram.drawio.png?token=GHSAT0AAAAAABUJOA6DKESD2SZZA34BZCKCYUCTJ3A)
+ ![Use-Case Diagram](https://github.com/Hong0249/BENR2423-ASSIGNMENT/blob/d42871aea1b907b68c6faedff354ab22181f1aee/Use-case%20Diagram.drawio.png "Use-Case Diagram")
+ 
+ 
+ 
+ ![Crow's Foot Diagram](https://github.com/Hong0249/BENR2423-ASSIGNMENT/blob/01adc2fbb6b00c158867c6d2183e0dd304d9ff25/Crow's%20Foot%20Diagram-Page-1.drawio.png "Crow's Foot Diagram")
