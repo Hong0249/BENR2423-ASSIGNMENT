@@ -3,7 +3,7 @@ const User = require("./user");
 
 MongoClient.connect(
 	// TODO: Connection 
-	"my-mongodb+srv-connection-stringmy-mongodb+srv-connection-string",
+	"mongodb+srv://Group13:p%4055w0rd@cluster0.ft7ws.mongodb.net/test",
 	{ useNewUrlParser: true },
 ).catch(err => {
 	console.error(err.stack)
@@ -15,7 +15,7 @@ MongoClient.connect(
 
 const express = require('express')
 const app = express()
-const port = 3000
+const port = process.env.PORT || 3000
 
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
