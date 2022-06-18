@@ -6,11 +6,11 @@ class User {
 		users = await conn.db("vms").collection("users")
 	}
 
-	static async register(username, password) {
+	static async register(username, password, role) {
 		// TODO: Check if username exists
 		let usersearch = await users.find({ username: username }).toArray()
 			if (usersearch.length > 0) {
-				const message = "User already exists with this credentials. Please login"
+				//const message = "User already exists with this credentials. Please login"
 				return
 			} else {
 				// TODO: Hash password
@@ -18,7 +18,7 @@ class User {
 				password = passwordHash;
 
 				// TODO: Save user to database
-				await users.insertOne({ username: username, password: password });
+				await users.insertOne({ username: username, password: password, role: role });
 			}
 		return users.find({ username: username }).toArray();
 	};
@@ -27,7 +27,7 @@ class User {
 		// TODO: Check if username exists
 		let usersearch = await users.find({ username: username }).toArray();
 			if (usersearch.length == 0) {
-				return
+				return null
 			}
 
 		// TODO: Validate password
@@ -37,11 +37,10 @@ class User {
 		if (key) {
 			return usersearch
 		} else {
-			return {
-				key: false
-			};
+			return null
 		}
 	}
+
 }
 
 module.exports = User;
