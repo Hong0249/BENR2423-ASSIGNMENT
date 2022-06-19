@@ -1,4 +1,4 @@
-let booking;
+let booking, faci;
 
 class Booking {
 	static async injectDB(conn) {
@@ -16,7 +16,7 @@ class Booking {
         let facilities = await faci.find(
             {facilities_id: facilities_id}).toArray();
 
-            console.log(result.length, facilities[0].max_no_visitors);
+            console.log("Number of bookings: "+result.length+"   Maximum Number of bookings: "+facilities[0].max_no_visitors);
         if(result.length <= facilities[0].max_no_visitors){
             i = true;
             console.log("Booking is available");
@@ -54,10 +54,11 @@ class Booking {
         }).toArray()
 	}
 
-    static async queryBooking(visitor_id) {
+    static async queryBooking(facilities_id) {
         // TODO: Query booking request
-        let result = await booking.find({visitor_id: visitor_id}).toArray();
+        let result = await booking.find({facilities_id: facilities_id}).toArray();
         if(result.length > 0){
+            console.log("Booking request found");
             return result;
         } else {
             return null;

@@ -6,23 +6,23 @@ class Facility {
 	}
 
     static async createFacility(param) {
-		// TODO: Check facilities
-		let facilities = await faci.find({ facilities_id: facilities_id }).toArray();
+		console.log(param);
+		let facilities = await faci.find({ facilities_id: param.facilities_id }).toArray()
         console.log(facilities)
-        if (facilities.length > 0) {
-            return false;
-        } else {
-            let output = await faci.insertOne({ 
-                facilities_id: param.facilities_id, 
-                name: param.name, 
-                location: param.location, 
-                operating_hour: param.operating_hour, 
-                max_no_visitors: param.max_no_visitors, 
-                manager_id: param.manager_id 
-            })
-            console.log(output)
-            return faci.find({ facilities_id: facilities_id }).toArray()
-        }
+            if (facilities.length > 0) {
+                return false;
+            } else {
+                let output = await faci.insertOne({ 
+                    facilities_id: param.facilities_id, 
+                    name: param.name, 
+                    location: param.location, 
+                    operating_hours: param.operating_hours, 
+                    max_number_visitors: param.max_number_visitors, 
+                    manager_id: param.manager_id 
+                })
+                console.log('Facility info created:'+ output)
+                return faci.find({ facilities_id: param.facilities_id }).toArray()
+            }
 	}
 
 	static async getFacilities(name) {
@@ -38,12 +38,20 @@ class Facility {
 
     static async updateFacility(facilities_id, name, location, operating_hour, max_no_visitors, manager_id) {
         // TODO: Check facilities
-        let facilities = await faci.find({ facilities_id: facilities_id }).toArray();
+        let facilities = await faci.find({ '$and': [{'facilities_id': facilities_id}, {'manager_id': manager_id}] }).toArray();
+        console.log(facilities)
         if (facilities.length == 0) {
-            return false;
+            return null;
         }
         else {
-            let output = await faci.updateOne({ facilities_id: facilities_id }, { $set: { name: name, location: location, operating_hour: operating_hour, max_no_visitors: max_no_visitors, manager_id: manager_id } })
+            let output = await faci.updateOne({ facilities_id: facilities_id }, 
+                { $set: { 
+                    name: name, 
+                    location: location, 
+                    operating_hour: operating_hour, 
+                    max_no_visitors: max_no_visitors 
+                } 
+            })
             return faci.find({ facilities_id: facilities_id }).toArray()
         }
     }
