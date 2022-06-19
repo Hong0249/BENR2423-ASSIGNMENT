@@ -508,7 +508,7 @@ app.post('/BookingandReservation', async (req, res) => {
  * @swagger
  * /visitor/{id}:
  *   get:
- *     tags : ["Client"] 
+ *     tags : ["Facility Manager"] 
  *     security: 
  *       - bearerAuth: []
  *     description: Get visitor by id
