@@ -111,6 +111,7 @@ app.get('/', (req, res) => {
  * @swagger
  * /login:
  *   post:
+ *     tags : ["Client"]
  *     description: User Login
  *     requestBody:
  *       required: true
@@ -162,6 +163,7 @@ app.post('/login', async (req, res) => {
  * @swagger
  * /facilities/{name}:
  *   get:
+ *     tags : ["Client"]
  *     description: Search facility
  *     parameters:
  *       - in: path
@@ -197,6 +199,7 @@ app.get('/facilities/:name', async (req, res) => {
  * @swagger
  * /queryBooking/{id}:
  *   get:
+ *     tags : ["Client"] 
  *     description: Search Booking
  *     parameters:
  *       - in: path
@@ -237,6 +240,7 @@ app.use(verifyToken);
  * @swagger
  * /register:
  *   post:
+ *     tags : ["Admin"] 
  *     security: 
  *       - bearerAuth: []
  *     description: User Register
@@ -287,6 +291,7 @@ app.use(verifyToken);
  * @swagger
  * /updateFacility:
  *   patch:
+ *     tags : ["Facility Manager"]
  *     security: 
  *       - bearerAuth: []
  *     description: Update Facility Info
@@ -343,6 +348,7 @@ app.patch('/updateFacility', async (req, res) => {
  * @swagger
  * /createVisitor:
  *   post:
+ *     tags : ["Facility Manager"]
  *     security: 
  *       - bearerAuth: []
  *     description: Create Visitor
@@ -393,6 +399,7 @@ app.post('/createVisitor', async (req, res) => {
  * @swagger
  * /BookingandReservation:
  *   post:
+ *     tags : ["Facility Manager"]
  *     security: 
  *       - bearerAuth: []
  *     description: Booking and Reservation
@@ -444,6 +451,7 @@ app.post('/BookingandReservation', async (req, res) => {
  * @swagger
  * /createFacility:
  *   post:
+ *     tags : ["Admin"]
  *     security: 
  *       - bearerAuth: []
  *     description: Create Facility
@@ -500,6 +508,7 @@ app.post('/BookingandReservation', async (req, res) => {
  * @swagger
  * /visitor/{id}:
  *   get:
+ *     tags : ["User"] 
  *     security: 
  *       - bearerAuth: []
  *     description: Get visitor by id
@@ -543,6 +552,7 @@ app.get('/visitor/:id', async (req, res) => {
  * @swagger
  * /deleteFacility/{id}:
  *   delete:
+ *     tags : ["Admin"] 
  *     security: 
  *       - bearerAuth: []
  *     description: Delete Facility
@@ -583,7 +593,7 @@ app.get('/visitor/:id', async (req, res) => {
  })	
 
 
- 
+
 app.listen(port, () => {
 	console.log(`FMS REST API listening on port ${port}`)
 })
