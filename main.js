@@ -2,9 +2,9 @@ const MongoClient = require("mongodb").MongoClient;
 const User = require("./user");
 const Visitor = require("./visitor");
 const Facility = require("./faci_info");
+const Booking = require("./booking_request");
 
 MongoClient.connect(
-	// TODO: Connection 
 	"mongodb+srv://Group13:p%4055w0rd@cluster0.ft7ws.mongodb.net/vms?retryWrites=true&w=majority",
 	{ useNewUrlParser: true },
 ).catch(err => {
@@ -14,6 +14,8 @@ MongoClient.connect(
 	console.log('Connected to MongoDB');
 	User.injectDB(client);
 	Visitor.injectDB(client);
+	Facility.injectDB(client);
+	Booking.injectDB(client);
 })
 
 const express = require('express')
@@ -39,7 +41,7 @@ const options = {
 			},
 		}
 	},
-	apis: ['./main.js'], // files containing annotations as above
+	apis: ['./main.js'],
 };
 const swaggerSpec = swaggerJsdoc(options);
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
@@ -56,7 +58,7 @@ app.get('/', (req, res) => {
  * @swagger
  * components:
  *   schemas:
- *     User:
+ *     user:
  *       properties:
  *         id:
  *           type: string
@@ -66,7 +68,7 @@ app.get('/', (req, res) => {
  *           type: string
  *         role:
  *           type: string
- *     Visitor:
+ *     visitor:
  *       properties:
  *         name:
  *           type: string
@@ -74,6 +76,29 @@ app.get('/', (req, res) => {
  *           type: string
  *         hp:
  *           type: string
+ *     facilities:
+ *        properties:
+ *          facilityes_id:
+ *           type: string
+ *          name:
+ *           type: string
+ *          location:
+ *           type: string
+ *          operatin_hours:
+ *           type: string
+ *          max_number_visitors:
+ *           type: int
+ *          manager_id:
+ *           type: string   
+ *     booking_request:
+ *        properties:
+ *          facilities_id:
+ *           type: string
+ *          visitor_id:
+ *           type: string
+ *          time_slot:
+ *           type: string
+ *  
  * 
  *   securitySchemes:
  *     bearerAuth:
@@ -104,10 +129,11 @@ app.get('/', (req, res) => {
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/User'
+ *               $ref: '#/components/schemas/user'
  *       401:
  *         description: Invalid username or password
  */
+
 app.post('/login', async (req, res) => {
 	console.log(req.body);
 
@@ -131,11 +157,87 @@ app.post('/login', async (req, res) => {
 	}
 })
 
+
+/**
+ * @swagger
+ * /facilities/{name}:
+ *   get:
+ *     description: Search facility
+ *     parameters:
+ *       - in: path
+ *         name: name 
+ *         schema: 
+ *           type: string
+ *         required: true
+ *         description: facility name
+ *     responses:
+ *       200:
+ *         description: Facility found!
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/facilities'
+ *       404:
+ *         description: No facility found
+ */
+
+app.get('/facilities/:name', async (req, res) => {
+	console.log(req.params);
+	const facilities = await Facility.getFacilities(req.params.name);
+	if (facilities != null) {
+		console.log("Facility found!");
+		res.status(200).json(facilities);
+	} else {
+		console.log("Get Facilities failed")
+		res.status(404).send("No Facilities found");
+	}
+})
+
+/**
+ * @swagger
+ * /queryBooking/{id}:
+ *   get:
+ *     description: Search Booking
+ *     parameters:
+ *       - in: path
+ *         name: id 
+ *         schema: 
+ *           type: string
+ *         required: true
+ *         description: facility id
+ *     responses:
+ *       200:
+ *         description: Booking found!
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/booking_request'
+ *       404:
+ *         description: Booking not found
+ */
+
+ app.get('/queryBooking/:id', async (req, res) => {
+	console.log(req.params);
+	const booking = await Booking.queryBooking(req.params.id);
+	if (booking != null) {
+		console.log("Booking found!");
+		res.status(200).json(booking);
+	} else {
+		console.log("Booking not found")
+		res.status(404).send("Booking not found");
+	}
+})
+
+
+// Middleware Express for JWT
+app.use(verifyToken);
+
+
 /**
  * @swagger
  * /register:
  *   post:
- *       security: 
+ *     security: 
  *       - bearerAuth: []
  *     description: User Register
  *     requestBody:
@@ -158,115 +260,241 @@ app.post('/login', async (req, res) => {
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/User'
- *       401:
+ *               $ref: '#/components/schemas/user'
+ *       409:
  *         description: Register failed
+ *       403:
+ *         description: Forbidden
  */
 
-app.post('/register', async (req, res) => {
+ app.post('/register', async (req, res) => {
 	console.log(req.body);
-	if(req.body.role == "admin") {
+	if(req.user.role == "admin") {
 		const user = await User.register(req.body.username, req.body.password, req.body.role);
 		if (user != null) {
 			console.log("Register successful");
 			res.status(200).send("User registered");
 		} else {
 			console.log("Register failed")
-			res.status(404).json("Username already exists");
+			res.status(409).json("Username already exists");
 		}
+	} else {
+		res.status(403).send('Forbidden')
 	}
 })
 
-app.post('/createFacility', async (req, res) => {
+/**
+ * @swagger
+ * /updateFacility:
+ *   patch:
+ *     security: 
+ *       - bearerAuth: []
+ *     description: Update Facility Info
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: 
+ *             type: object
+ *             properties:
+ *               facilities_id: 
+ *                 type: string
+ *               name: 
+ *                 type: string
+ *               location: 
+ *                 type: string
+ *               operating_hours: 
+ *                 type: string
+ *               max_number_visitors: 
+ *                 type: string
+ *               manager_id: 
+ *                 type: string
+ * 
+ *     responses:
+ *       200:
+ *         description: Update Facility Successful!
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/facilities'
+ *       404:
+ *         description: Facility not found
+ *       401:
+ *         description: Unauthorized
+ */
+
+app.patch('/updateFacility', async (req, res) => {
 	console.log(req.body);
-	const facility = await Facility.createFacility(req.body);
-	if (facility != null) {
-		console.log("Facility created");
-		res.status(200).send("Facility created");
+	if(req.user.role = "user"){
+		const facility = await Facility.updateFacility(req.body.facilities_id, req.body.name, req.body.location, req.body.operating_hours, req.body.max_number_visitors, req.body.manager_id);
+		if (facility != null) {
+			console.log("Update Facility Successful!");
+			res.status(200).json(facility);
+		} else {
+			console.log("Update Facility failed")
+			res.status(404).send("Facility not found");
+		}
 	} else {
-		console.log("Facility creation failed")
-		res.status(404).json("Facility already exists");
+		res.status(401).send("Unauthorized");
 	}
 })
 
-app.get('/facilities/:name', async (req, res) => {
-	console.log(req.params);
-	const facilities = await Facility.getFacilities(req.params.name);
-	if (facilities != null) {
-		console.log("Get Facilities Successful!");
-		res.status(200).json(facilities);
-	} else {
-		console.log("Get Facilities failed")
-		res.status(404).send("No Facilities found");
-	}
-})
-
-app.patch('/updateFacility/:id', async (req, res) => {
-	console.log(req.body);
-	const facility = await Facility.updateFacility(req.body.facility_id, req.body.facility_name, req.body.location, req.body.operating_hour, req.body.max_no_visitors, req.body.manager_id);
-	if (facility != null) {
-		console.log("Update Facility Successful!");
-		res.status(200).json(facility);
-	} else {
-		console.log("Update Facility failed")
-		res.status(404).send("Facility not found");
-	}
-})
-
-app.delete('/deleteFacility', async (req, res) => {
-	const facility = await Facility.deleteFacility(req.body.facility_id);
-	if (facility != null) {
-		console.log("Delete Facility Successful!");
-		res.status(200).send("Facility deleted");
-	} else {
-		console.log("Delete Facility failed")
-		res.status(404).send("Facility not found");
-	}
-})
+/**
+ * @swagger
+ * /createVisitor:
+ *   post:
+ *     security: 
+ *       - bearerAuth: []
+ *     description: Create Visitor
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: 
+ *             type: object
+ *             properties:
+ *               name: 
+ *                 type: string
+ *               ic_no: 
+ *                 type: string
+ *               hp: 
+ *                 type: string
+ * 
+ *     responses:
+ *       200:
+ *         description: Visitor created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/visitor'
+ *       409:
+ *         description: Visitor already exists
+ *       401:
+ *         description: Unauthorized
+ */
 
 app.post('/createVisitor', async (req, res) => {
 	console.log(req.body);
-	const visitor = await Visitor.create_visitor(req.body.name, req.body.ic_no, req.body.hp);
-	if (visitor != false) {
-		console.log("Visitor created");
-		res.status(200).send("Visitor created");
+	if(req.user.role == 'user') {
+		const visitor = await Visitor.create_visitor(req.body.name, req.body.ic_no, req.body.hp);
+		if (visitor != false) {
+			console.log("Visitor created");
+			res.status(200).send("Visitor created");
+		} else {
+			console.log("Visitor creation failed")
+			res.status(409).json("Visitor already exists");
+		}
 	} else {
-		console.log("Visitor creation failed")
-		res.status(404).json("Visitor already exists");
+		res.status(401).send("Unauthorized");
 	}
 })
+
+/**
+ * @swagger
+ * /BookingandReservation:
+ *   post:
+ *     security: 
+ *       - bearerAuth: []
+ *     description: Booking and Reservation
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: 
+ *             type: object
+ *             properties:
+ *               facility_id: 
+ *                 type: string
+ *               visitor_id: 
+ *                 type: string
+ *               time_slot: 
+ *                 type: string
+ * 
+ *     responses:
+ *       200:
+ *         description: Booking and Reservation Successful!
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/booking_request'
+ *       424:
+ *         description: Booking and Reservation Failed!
+ *       401:
+ *         description: Unauthorized
+ *       
+ */
 
 app.post('/BookingandReservation', async (req, res) => {
 	console.log(req.body);
-	const booking = await Visitor.BookingandReservation(req.body.facility_id, req.body.visitor_id, req.body.time_slot);
-	if (booking != false) {
-		console.log("Booking and Reservation Successful!");
-		res.status(200).json(booking);
+	if(req.user.role == 'user') {
+		const booking = await Booking.BookingandReservation(req.body.facility_id, req.body.visitor_id, req.body.time_slot);
+		if (booking != false) {
+			console.log("Booking and Reservation Successful!");
+			res.status(200).json(booking);
+		} else {
+			console.log("Booking and Reservation failed")
+			res.status(424).send("Booking and Reservation failed");
+		} 
 	} else {
-		console.log("Booking and Reservation failed")
-		res.status(404).send("Booking and Reservation failed");
+		res.status(401).send("Unauthorized");
 	}
 })
 
-app.get('/queryBooking/:id', async (req, res) => {
-	console.log(req.params);
-	const booking = await Visitor.queryBooking(req.params.visitor_id);
-	if (booking != null) {
-		console.log("Booking found!");
-		res.status(200).json(booking);
+/**
+ * @swagger
+ * /createFacility:
+ *   post:
+ *     security: 
+ *       - bearerAuth: []
+ *     description: Create Facility
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: 
+ *             type: object
+ *             properties:
+ *               facilities_id: 
+ *                 type: string
+ *               name: 
+ *                 type: string
+ *               location: 
+ *                 type: string
+ *               operating_hours: 
+ *                 type: string
+ *               max_number_visitors: 
+ *                 type: string
+ *               manager_id: 
+ *                 type: string
+ * 
+ *     responses:
+ *       200:
+ *         description: Facility created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/facilities'
+ *       409:
+ *         description: Facility already exists
+ *       403:
+ *         description: Forbidden
+ */
+
+ app.post('/createFacility', async (req, res) => {
+	console.log(req.body);
+	if(req.user.role == "admin") {
+		const facility = await Facility.createFacility(req.body);
+		if (facility != null) {
+			console.log("Facility created");
+			res.status(200).json(facility);
+		} else {
+			console.log("Facility creation failed")
+			res.status(404).send("Facility already exists");
+		}
 	} else {
-		console.log("Booking not found")
-		res.status(404).send("Booking not found");
+		res.status(403).send('Forbidden')
 	}
 })
-
-
-
-
-
-
-// Middleware Express for JWT
-app.use(verifyToken);
 
 /**
  * @swagger
@@ -281,16 +509,18 @@ app.use(verifyToken);
  *         schema: 
  *           type: string
  *         required: true
- *         description: visitor id
+ *         description: Visitor id
  *     responses:
  *       200:
  *         description: Visitor found
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Visitor'
- *       401:
+ *               $ref: '#/components/schemas/visitor'
+ *       404:
  *         description: Query not found
+ *       401:
+ *         description: Unauthorized
  */
 
 app.get('/visitor/:id', async (req, res) => {
@@ -305,57 +535,63 @@ app.get('/visitor/:id', async (req, res) => {
 		else
 			res.status(404).send("Invalid Visitor Id");
 	} else {
-		res.status(403).send('Unauthorized')
+		res.status(401).send('Unauthorized')
 	}
 })
 
-
 /**
  * @swagger
- * /update_info:
- *   patch:
+ * /deleteFacility/{id}:
+ *   delete:
  *     security: 
  *       - bearerAuth: []
- *     description: Update facilities info
+ *     description: Delete Facility
  *     parameters:
  *       - in: path
  *         name: id 
  *         schema: 
  *           type: string
  *         required: true
- *         description: name of the facility
- *       - in: body
- *       
+ *         description: facility id
  *     responses:
  *       200:
- *         description: Visitor found
+ *         description: Facility deleted
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Visitor'
- *       401:
- *         description: Query not found
+ *               $ref: '#/components/schemas/facilities'
+ *       404:
+ *         description: Facility not found
+ *       403:
+ *         description: Forbidden
  */
 
+ app.delete('/deleteFacility/:id', async (req, res) => {
+
+	if(req.user.role == 'admin') {
+		const facility = await Facility.deleteFacility(req.params.id);
+		if (facility != false) {
+			console.log("Delete Facility Successful!");
+			res.status(200).send("Facility deleted");
+		} else {
+			console.log("Delete Facility failed")
+			res.status(404).send("Facility not found");
+		}
+	} else {
+		res.status(403).send('Forbidden')
+	}
+ })	
 
 
-// app.get('/admin/only', async (req, res) => {
-// 	console.log(req.user);
-
-// 	if (req.user.role == 'admin')
-// 		res.status(200).send('Admin only')
-// 	else
-// 		res.status(403).send('Unauthorized')
-// })
-
-// app.listen(port, () => {
-// 	console.log(`FMS REST API listening on port ${port}`)
-// })
+ 
+app.listen(port, () => {
+	console.log(`FMS REST API listening on port ${port}`)
+})
 
 
 const jwt = require('jsonwebtoken');
 function generateAccessToken(payload) {
-	return jwt.sign(payload, "my-super-secret", { expiresIn: '1h' });
+	return jwt.sign(payload, "Assignment-S2G13", { expiresIn: '1h' });
 }
 
 function verifyToken(req, res, next) {
@@ -364,7 +600,7 @@ function verifyToken(req, res, next) {
 
 	if (token == null) return res.sendStatus(401)
 
-	jwt.verify(token, "my-super-secret", (err, user) => {
+	jwt.verify(token, "Assignment-S2G13", (err, user) => {
 		console.log(err)
 
 		if (err) return res.sendStatus(403)
