@@ -30,7 +30,7 @@ class Facility {
         let facilities = await faci.find({"name": {$regex: name, $options: "i"}}).toArray();
         console.log(facilities)
         if( facilities.length == 0){
-            return false;
+            return null;
         } else {
             return facilities;
         }
