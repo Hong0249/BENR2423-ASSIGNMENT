@@ -10,14 +10,13 @@ class Visitor {
         let document = await visitors.find({ic_no: ic_no}).toArray();
 
         if( document.length > 0){
-            return [false, "Visitor already exists"]
+            return false
         } else {
         // TODO: Save new visitor to database
             await visitors.insertOne({
                 name: name,
                 ic_no: ic_no,
                 hp: hp,
-                mysj_status: mysj_status
             })
             return visitors.find({ic_no: ic_no}).toArray()
         }
